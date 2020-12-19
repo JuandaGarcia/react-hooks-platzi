@@ -1,8 +1,18 @@
-import React, { useState, useEffect, useReducer, useMemo, useRef } from 'react'
+import React, {
+	useState,
+	useReducer,
+	useMemo,
+	useRef,
+	useCallback,
+} from 'react'
+import useCharacters from '../hooks/useCharacters'
+import Search from './Search'
 
 const initialState = {
 	favorites: [],
 }
+
+const API = 'https://rickandmortyapi.com/api/character/'
 
 const favoriteReducer = (state, action) => {
 	switch (action.type) {
@@ -17,24 +27,24 @@ const favoriteReducer = (state, action) => {
 }
 
 const Characters = () => {
-	const [characters, setCharacters] = useState([])
 	const [favorites, dispatch] = useReducer(favoriteReducer, initialState)
 	const [search, setSearch] = useState('')
 	const searchInput = useRef(null)
 
-	useEffect(() => {
-		fetch('https://rickandmortyapi.com/api/character/')
-			.then((response) => response.json())
-			.then((data) => setCharacters(data.results))
-	}, [])
+	const characters = useCharacters(API)
 
 	const handleClick = (favorite) => {
 		dispatch({ type: 'ADD_TO_FAVORITE', payload: favorite })
 	}
 
-	const handleSearch = () => {
+	// const handleSearch = () => {
+	// 	setSearch(searchInput.current.value)
+	// }
+
+	const handleSearch = useCallback(() => {
+		console.log('hola')
 		setSearch(searchInput.current.value)
-	}
+	}, [])
 
 	// const filteredUsers = characters.filter((user) => {
 	// 	console.log('hola')
@@ -44,7 +54,6 @@ const Characters = () => {
 	const filteredUsers = useMemo(
 		() =>
 			characters.filter((user) => {
-				console.log('hola')
 				return user.name.toLowerCase().includes(search.toLowerCase())
 			}),
 		[characters, search]
@@ -56,14 +65,11 @@ const Characters = () => {
 				<li key={favorite.id}>{favorite.name}</li>
 			))}
 
-			<div className="Search">
-				<input
-					ref={searchInput}
-					type="text"
-					value={search}
-					onChange={handleSearch}
-				/>
-			</div>
+			<Search
+				search={search}
+				searchInput={searchInput}
+				handleSearch={handleSearch}
+			/>
 
 			{filteredUsers.map((character) => (
 				<div className="item" key={character.name}>
